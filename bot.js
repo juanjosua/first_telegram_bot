@@ -2,100 +2,52 @@
 const Telegraf = require('telegraf');
 
 //Use Telegraf class as a constructor to create an instance of the bot
-const bot = new Telegraf('1099369548:AAEoqjNi_pCnGIZ_cY8-vWe9wqvFFEm00QU');
+const bot = new Telegraf('1332978521:AAFEuBZ1NlyZvXKpWaXsFMn_bJJRdafyl_g');
 
-//  Common commands that are use in telegram
-//  https://telegraf.js.org/#/?id=known-middleware
+const helpMessage = `
+Say something to me
+/start - start the bot
+/help - command reference
+`;
 
-//  /start
-//    ctx = context for one Telegram update.
-//    use props to acces Telegram Context, e.g. ctx.first_name, etc.
+//feature to let us know that someone is using our bot
+bot.use((ctx, next) => {
+  // console.log("Someone used your bot");
+  // console.log(ctx.from);
+
+  if (ctx.updateSubTypes[0] == "text") {
+    //to see the group id, use ctx.chat
+    //send a message to a spesific group, e.g. echo bot logs
+    bot.telegram.sendMessage(-407937449, ctx.from.first_name + " said: " + ctx.message.text);
+  } else {
+    bot.telegram.sendMessage(-407937449, ctx.from.first_name + " sent " + ctx.updateSubTypes[0]);
+  }
+
+  next();
+});
+
 bot.start((ctx) => {
-  ctx.reply(ctx.from.first_name + " have entered the start command and it is a " +
-  ctx.updateSubTypes[0] + ".");
+  ctx.reply("Hi I am Echo Bot");
+  ctx.reply(helpMessage);
 });
 
-//  /help
 bot.help((ctx) => {
-  ctx.reply("You have entered the help command");
+  ctx.reply(helpMessage);
 });
 
-//  /settings
-bot.settings((ctx) => {
-  ctx.reply("You have entered the settings command");
-});
+bot.command("echo", (ctx) => {
+  let input = ctx.message.text; //get input from user
+  let inputArray = input.split(" "); //split input by spaces
+  let message = ""; //create a variable for message to output to user
 
-//Bot Custom Method
-bot.command(["test", "Test"], (ctx) => {
-  ctx.reply("Hello world");
-});
+  if (inputArray.length == 1) { //check if array just contains "/echo"
+    message = "You said echo";
+  } else {
+    inputArray.shift(); //remove the first element of the array
+    message = inputArray.join(" "); //join all elements into a string separated by spaces
+  }
 
-//Bot Hears Method
-//  See for a specific word without "/" and return reply
-bot.hears("cat", (ctx) => {
-  ctx.reply("meow");
-});
-
-//Bot On Method
-//  Allows bot to handle update types, e.g. sticker, text, etc.
-bot.on("sticker", (ctx) => {
-  ctx.reply("This is a stickers message");
-});
-
-//Bot Mention Method
-//  Allows bot to handle username, e.g. @botfather
-//  If the mention in the middle of a sentece, it still works
-bot.mention("botfather", (ctx) => {
-  ctx.reply("mention method");
-});
-
-//Bot Phone Method
-//  Allows bot to handle phone number, e.g. (62) 8211-260-9637, +62 8211-260-9637
-bot.phone("+62 82112609637", (ctx) => {
-  ctx.reply("phone method");
-});
-
-//Bot Hashtag Method
-//  Allows bot to handle hashtag, e.g. #hash
-bot.hashtag("hash", (ctx, next) => {
-  ctx.reply("hashtag method");
-
-  // To modify the state of the context use state Method
-  ctx.state.apple = 5;
-  console.log(ctx);
-
-  // Use next function to call the next middleware
-  next(ctx);
-});
-
-//Bot Use Method
-//  Handle all requests by the user
-bot.use((ctx) => {
-  // ctx.reply("You used the bot");
-  ctx.reply("Your apple state is " + ctx.state.apple);
-});
-
-//  When using extra parameters,
-//  you have to insert an objext as the third parameter
-//  with properties (the possible extra parameters)
-bot.command('extra', (ctx) => {
-
-  //bot.telegram.sendMessage(chatId, text, [extra])
-  bot.telegram.sendMessage(ctx.chat.id, "Extra method",
-    {
-      parse_mode: 'Markdown',
-      disable_notification: true
-    }
-  );
-
-  //ctx.reply(text, [extra])
-  ctx.reply("Extra method",
-    {
-      parse_mode: 'Markdown',
-      disable_notification: true
-    }
-  );
-
+  ctx.reply(message); //send reply message to user
 });
 
 bot.launch();
